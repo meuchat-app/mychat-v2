@@ -13,6 +13,7 @@ public class CadastroProdutosBot {
 
     public static void main(String[] args) {
         DoBotChatApp meubot = DoBotChatApp.novoBot();
+        meubot.ativarExemplos();
         meubot.start(8083,8084);
 
     }
@@ -24,16 +25,75 @@ public class CadastroProdutosBot {
 
     @EstadoChat(inicial = true)
     public void aloMundo(Contexto chat) {
-        String msg = chat.getMensagemUsuario();
-        chat.responder("Alô "+msg);
-        chat.responder("Vou mostrar o menu na próxima mensagem.");
-        chat.mudarEstado("menu");
+        chat.responder("Bem-vindo ao exemplo de cadastro de produtos!");
+        chat.responder("Menu: \n1 - Cadastrar produto\n2 - Listar produtos\n3 - Sair");
+        chat.mudarEstado("opcao");
     }
 
     @EstadoChat(estado = "menu")
     public void menu(Contexto chat) {
-        chat.responder("Menu: \n1 - Alô Mundo\n2 - Sair");
+        chat.responder("Menu: \n1 - Cadastrar produto\n2 - Listar produtos\n3 - Sair");
         chat.mudarEstado("opcao");
+    }
+
+    @EstadoChat(estado = "opcao")
+    public void opcao(Contexto chat) {
+        String msg = chat.getMensagemUsuario().trim();
+        switch (msg) {
+            case "1" -> {
+                chat.responder("Envie o produto no formato: nome;preco (ex: Caneca;12.50)");
+                chat.mudarEstado("cadastrar");
+            }
+            case "2" -> {
+                var serv = chat.getServico(Produto.class);
+                try {
+                    var todos = serv.buscarTodos();
+                    if (todos == null || todos.isEmpty()) {
+                        chat.responder("Nenhum produto cadastrado.");
+                    } else {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append("Produtos cadastrados:\n");
+                        for (var p : todos) {
+                            sb.append(p.toString()).append("\n");
+                        }
+                        chat.responder(sb.toString());
+                    }
+                } catch (Exception e) {
+                    chat.responder("Falha ao listar produtos: " + e.getMessage());
+                }
+                chat.mudarEstado("main");
+            }
+            case "3" -> {
+                chat.responder("Até logo!");
+                chat.mudarEstado("main");
+            }
+            default -> chat.responder("Opção inválida. Digite 1, 2 ou 3.");
+        }
+    }
+
+    @EstadoChat(estado = "cadastrar")
+    public void cadastrar(Contexto chat) {
+        String msg = chat.getMensagemUsuario();
+        String[] parts = msg.split(";");
+        if (parts.length < 2) {
+            chat.responder("Formato inválido. Use: nome;preco (ex: Caneca;12.50)");
+            return;
+        }
+        String nome = parts[0].trim();
+        String precoStr = parts[1].trim().replace(',', '.');
+        try {
+            double preco = Double.parseDouble(precoStr);
+            var serv = chat.getServico(Produto.class);
+            Produto p = new Produto(0, nome, preco);
+            serv.salvar(p);
+            chat.responder("Produto cadastrado: " + p.toString());
+        } catch (NumberFormatException nfe) {
+            chat.responder("Preço inválido. Use um número (ex: 12.50)");
+            return;
+        } catch (Exception e) {
+            chat.responder("Falha ao salvar produto: " + e.getMessage());
+        }
+        chat.mudarEstado("main");
     }
 
 
