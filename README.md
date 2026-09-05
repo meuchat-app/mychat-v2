@@ -175,6 +175,18 @@ public class HelloWorldBot {
 
 ```
 
+## Exemplo com Telegram
+
+O exemplo `chat.dobot.exemplos.telegram.TelegramHelloWorldBot` usa Long Polling e as mesmas anotações do canal web. Crie um bot pelo `@BotFather`, defina o token e o username como variáveis de ambiente e execute a classe:
+
+```powershell
+$env:TELEGRAM_BOT_TOKEN = "seu-token-do-botfather"
+$env:TELEGRAM_BOT_USERNAME = "seu_bot"
+mvn exec:java -Dexec.mainClass="chat.dobot.exemplos.telegram.TelegramHelloWorldBot"
+```
+
+O bot responde a `/start` e repete qualquer outra mensagem recebida. O `chatId` do Telegram é usado internamente para manter uma sessão de conversa independente para cada usuário.
+
 ## Acessando o Banco de Dados H2
 O DoBot.chat utiliza o H2 como banco de dados em memória por padrão. Você pode acessar o console web do H2 para inspecionar as tabelas e dados armazenados.
 

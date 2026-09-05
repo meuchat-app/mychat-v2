@@ -86,6 +86,19 @@ class DoBotTest {
     }
 
     @Test
+    @DisplayName("Deve persistir o estado alterado pelo handler")
+    void devePersistirEstadoAlterado() throws EstadoInvalidoException {
+        Map<String, BotStateMethod> estados = new HashMap<>();
+        estados.put("main", contexto -> contexto.mudarEstado("proximo"));
+        estados.put("proximo", contexto -> contexto.responder("ok"));
+        doBot.setEstados(estados);
+
+        doBot.receberMensagem(new Contexto("Oi", "main", new HashMap<>()));
+
+        assertEquals("proximo", doBot.getEstadoAtual());
+    }
+
+    @Test
     @DisplayName("Deve lançar IllegalArgumentException ao tentar definir estado nulo")
     void deveLancarExcecaoComEstadoNulo() {
         Map<String, BotStateMethod> estados = new HashMap<>();

@@ -53,12 +53,21 @@ public class DoBot {
 
         estados.get(contexto.getEstado()).execute(contexto);
 
-        //TODO: verificar se é necessário
-        //ultimaMensagemBot = contexto.getRespostas() != null ? contexto.getRespostas() : ultimaMensagemBot;
-
         this.setEstadoAtual(contexto.getEstado());
 
         adicionarMensagens(contexto);
+    }
+
+    /**
+     * Cria uma sessão nova com os mesmos estados e configuração deste bot.
+     * O estado atual e o histórico de mensagens permanecem exclusivos da sessão.
+     */
+    public DoBot novaSessao() {
+        DoBot sessao = new DoBot(id, nome, descricao);
+        sessao.setEstados(estados);
+        sessao.getConfig().setMensagemInicial(doBotConfig.getMensagemInicial());
+        sessao.setMensagemInicial(doBotConfig.getMensagemInicial());
+        return sessao;
     }
 
     /**

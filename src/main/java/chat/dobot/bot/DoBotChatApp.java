@@ -59,6 +59,15 @@ public class DoBotChatApp {
         carregarExemplos = true;
     }
 
+    DoBotRuntime prepararRuntime(int portaH2) {
+        YormConfig yormConfig = new YormConfig(portaH2);
+        Map<String, DoBot> bots = carregarInstanciasChatbot();
+        if (bots.isEmpty()) {
+            throw new DoBotException("Nenhuma classe anotada com @DoBotChat foi encontrada");
+        }
+        return new DoBotRuntime(bots, inicializarPersistencia(yormConfig.getYorm()));
+    }
+
     /**
      * Inicializa a aplicação DoBotChat.
      *
@@ -77,21 +86,15 @@ public class DoBotChatApp {
             ConsoleUtil.printYellow(getdoBotAsciiArt());
             ConsoleUtil.printYellow("DoBotChat v" + getApplicationVersion());
 
-            // Configuração do Yorm
-            YormConfig yormConfig = new YormConfig(portaH2);
-
-
-            // Carregar instâncias de chatbots
-            Map<String, DoBot> bots = carregarInstanciasChatbot();
-            if (bots.isEmpty())
-                throw new DoBotException("Nenhuma classe anotada com @DoBotChat foi encontrada");
+            DoBotRuntime runtime = prepararRuntime(portaH2);
+            Map<String, DoBot> bots = runtime.getBots();
 
             logger.debug(bots.size() + " chatBots instanciados: {}.", bots.keySet());
 
             // Inicializa o Javalin
             Javalin app = Javalin.create(config -> {
                 // Registra os serviços no contexto da aplicação
-                config.appData(DoBotKey.SERVICE.key(), inicializarPersistencia(yormConfig.getYorm()));
+                config.appData(DoBotKey.SERVICE.key(), runtime.getServicos());
 
                 config.staticFiles.add(staticFileConfig -> {
                     staticFileConfig.directory = "/WEB-INF/publico";
